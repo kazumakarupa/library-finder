@@ -477,7 +477,7 @@
 
             try {
                 const coords = prefectureCenters[pref];
-                await searchNearbyLibraries(coords[0], coords[1], pref + 'から検索');
+                await searchNearbyLibraries(coords[0], coords[1], pref + 'から検索', pref);
             } catch (error) {
                 showStatus(`エラー: ${error.message}`, 'error');
             } finally {
@@ -486,15 +486,26 @@
         }
 
         // Search nearby libraries
-        async function searchNearbyLibraries(latitude, longitude, label) {
+        async function searchNearbyLibraries(latitude, longitude, label, prefName = null) {
             try {
                 showStatus('図書館情報を取得中...', 'loading');
 
-                const url = `https://api.calil.jp/library?` +
-                    `appkey=${API_KEY}&` +
-                    `geocode=${longitude},${latitude}&` +
-                    `limit=50&` +
-                    `format=jsonp`;
+                let url;
+                if (prefName) {
+                    // 都道府県検索の場合は pref パラメータを使用
+                    url = `https://api.calil.jp/library?` +
+                        `appkey=${API_KEY}&` +
+                        `pref=${prefName}&` +
+                        `limit=100&` +
+                        `format=jsonp`;
+                } else {
+                    // GPS検索の場合は geocode パラメータを使用
+                    url = `https://api.calil.jp/library?` +
+                        `appkey=${API_KEY}&` +
+                        `geocode=${longitude},${latitude}&` +
+                        `limit=100&` +
+                        `format=jsonp`;
+                }
 
                 const data = await jsonpRequest(url);
                 libraries = data.libraries || [];
